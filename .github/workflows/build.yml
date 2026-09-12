@@ -75,7 +75,7 @@ jobs:
           echo "release_tag=$RELEASE_TAG"
 
       - name: Create a release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
           files: |
