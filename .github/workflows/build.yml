@@ -16,8 +16,6 @@ jobs:
       - name: Checkout usk
         uses: actions/checkout@v6
         with:
-          repository: R-YaTian/usk
-          ref: new_sdloader
           path: usk
 
       - name: Checkout rehius/busk

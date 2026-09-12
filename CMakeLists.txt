@@ -24,7 +24,7 @@ pico_generate_pio_header(usk ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio OUTPUT_DIR ${C
 pico_generate_pio_header(usk ${CMAKE_CURRENT_LIST_DIR}/emmc.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/generated)
 
 pico_set_program_name(usk "usk")
-pico_set_program_version(usk "2.7")
+pico_set_program_version(usk "2.8")
 
 pico_set_binary_type(usk no_flash)
 
