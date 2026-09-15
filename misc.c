@@ -32,11 +32,11 @@ void __not_in_flash_func(zzz)() {
     *(uint32_t*)0x40060000 = 0x00d1e000; // disable rosc
     vreg[0] = 1;    // lowest possible power
     *(uint32_t*)0x40024000 = 0x00d1e000; // disable xosc
-    while(1);
+    while(1) __asm volatile("wfi");
 }
 
 void finish_pins_except_leds() {
-    for(int pin = 0; pin <= 29; pin += 1) {
+    for(int pin = 0; pin <= 29; pin++) {
         if (pin == led_pin() || pin == pwr_pin())
             continue;
         if (pin == PIN_GLI_PICO || pin == PIN_GLI_XIAO || pin == PIN_GLI_WS || pin == PIN_GLI_ITSY)
@@ -78,10 +78,7 @@ void halt_with_error(uint32_t err, uint32_t bits)
             bool is_long = err & (1 << (bits - i - 1));
             sleep_ms(is_long ? LONG_PAUSE_TIME : SHORT_PAUSE_TIME);
             bool success = bits == 1 && is_long == 0;
-            if (success)
-                put_pixel(PIX_whi);
-            else
-                put_pixel(PIX_yel);
+            put_pixel(success ? PIX_whi : PIX_yel);
             sleep_ms(is_long ? LONG_TIME : success ? SHORT_TIME * 2 : SHORT_TIME);
             put_pixel(0);
             if (i != bits - 1 || j != CODE_REPEATS - 1)
@@ -130,14 +127,14 @@ void put_pixel(uint32_t pixel_grb)
 
 void gpio_disable_input_output(int pin)
 {
-    uint32_t pad_reg = 0x4001c000 + 4 + pin*4;
+    uint32_t pad_reg = 0x4001c000 + 4 + (pin << 2);
     *(uint32_t*)(pad_reg + 0x2000) = GPIO_OD;
     *(uint32_t*)(pad_reg + 0x3000) = GPIO_IE;
 }
 
 void gpio_enable_input_output(int pin)
 {
-    uint32_t pad_reg = 0x4001c000 + 4 + pin*4;
+    uint32_t pad_reg = 0x4001c000 + 4 + (pin << 2);
     *(uint32_t*)(pad_reg + 0x3000) = GPIO_OD;
     *(uint32_t*)(pad_reg + 0x2000) = GPIO_IE;
 }
