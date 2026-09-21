@@ -18,43 +18,39 @@ jobs:
         with:
           path: usk
 
-      - name: Checkout rehius/busk
+      - name: Checkout R-YaTian/busk
         uses: actions/checkout@v6
         with:
-          repository: rehius/busk
+          repository: R-YaTian/busk
           path: busk
 
       - name: Checkout raspberrypi/pico-sdk
         uses: actions/checkout@v6
         with:
           repository: raspberrypi/pico-sdk
-          ref: 2.2.0
+          ref: 2.3.1
           path: pico-sdk
-          submodules: recursive
 
-      - name: Set PICO_SDK_PATH environment variable
+      - name: Set PICO_SDK_PATH environment variable and initialize submodules
         run: |
           echo "PICO_SDK_PATH=$GITHUB_WORKSPACE/pico-sdk" >> $GITHUB_ENV
-      - name: Create symbolic link of pico_sdk_import.cmake in busk and usk sources
+          cd $GITHUB_WORKSPACE/pico-sdk
+          git submodule update --init
+
+      - name: Prepare building
         run: |
+          # Create symbolic link of pico_sdk_import.cmake in busk and usk sources
           ln -s $PICO_SDK_PATH/external/pico_sdk_import.cmake $GITHUB_WORKSPACE/busk/pico_sdk_import.cmake
           ln -s $PICO_SDK_PATH/external/pico_sdk_import.cmake $GITHUB_WORKSPACE/usk/pico_sdk_import.cmake
-      - name: Create 'generated' directory in usk source directory
-        run: mkdir -p $GITHUB_WORKSPACE/usk/generated
+          # Create 'generated' directory in usk source directory
+          mkdir -p $GITHUB_WORKSPACE/usk/generated
 
       - name: Build busk
         run: |
-          # Backup and modify memmap_default.ld for busk build
-          cp $GITHUB_WORKSPACE/pico-sdk/src/rp2_common/pico_crt0/rp2040/memmap_default.ld $GITHUB_WORKSPACE/pico-sdk/src/rp2_common/pico_crt0/rp2040/memmap_default.ld.bak
-          sed -i 's/RAM(rwx) : ORIGIN =  0x20000000, LENGTH = 256k/RAM(rwx) : ORIGIN = 0x20038000, LENGTH = 32k/g' $GITHUB_WORKSPACE/pico-sdk/src/rp2_common/pico_crt0/rp2040/memmap_default.ld
           mkdir -p $GITHUB_WORKSPACE/build/busk
           cd $GITHUB_WORKSPACE/build/busk
           cmake $GITHUB_WORKSPACE/busk
           make
-          cd $GITHUB_WORKSPACE
-          # Restore original memmap_default.ld from backup
-          rm -f $GITHUB_WORKSPACE/pico-sdk/src/rp2_common/pico_crt0/rp2040/memmap_default.ld
-          mv $GITHUB_WORKSPACE/pico-sdk/src/rp2_common/pico_crt0/rp2040/memmap_default.ld.bak $GITHUB_WORKSPACE/pico-sdk/src/rp2_common/pico_crt0/rp2040/memmap_default.ld
 
       - name: Build usk
         run: |
@@ -64,6 +60,7 @@ jobs:
           make
           python3 $GITHUB_WORKSPACE/usk/prepare.py
           cd $GITHUB_WORKSPACE
+
       - name: Generate release tag
         id: tag
         run: |
